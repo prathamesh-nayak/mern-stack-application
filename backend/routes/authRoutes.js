@@ -3,6 +3,6 @@ const router = express.Router();
 const { login, register } = require('../controllers/authController');
 
 router.post('/login', login);
-router.post('/register', register); // Should be removed or protected in production
+router.post('/register', register);
 
 module.exports = router;

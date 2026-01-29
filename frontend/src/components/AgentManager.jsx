@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Button, Table, Row, Col, Alert, Card } from 'react-bootstrap';
-import { addAgent, getAgents, deleteAgent } from '../services/api';
+import { addAgent, getAgents, deleteAgent, updateAgent } from '../services/api';
 
 const AgentManager = () => {
   const [agents, setAgents] = useState([]);
@@ -12,6 +12,7 @@ const AgentManager = () => {
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
     fetchAgents();
@@ -30,13 +31,23 @@ const AgentManager = () => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    if(formData.mobileNumber.length != 10){
+      window.alert("mobile number should be 10 digit")
+      return
+    }
     try {
-      await addAgent(formData);
-      setSuccess('Agent added successfully!');
+      if (editingId) {
+        await updateAgent(editingId, formData);
+        setSuccess('Agent updated successfully!');
+        setEditingId(null);
+      } else {
+        await addAgent(formData);
+        setSuccess('Agent added successfully!');
+      }
       setFormData({ name: '', email: '', mobileNumber: '', password: '' });
       fetchAgents();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to add agent');
+      setError(err.response?.data?.message || (editingId ? 'Failed to update agent' : 'Failed to add agent'));
     }
   };
 
@@ -49,12 +60,33 @@ const AgentManager = () => {
       setError('Failed to delete agent');
     }
   };
+  const handleEdit = (id) => {
+    const agentToEdit = agents.find(agent => agent._id === id);
+    if (agentToEdit) {
+      setFormData({
+        name: agentToEdit.name,
+        email: agentToEdit.email,
+        mobileNumber: agentToEdit.mobileNumber,
+        password: '' // Password not populated for security
+      });
+      setEditingId(id);
+      setSuccess('');
+      setError('');
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setFormData({ name: '', email: '', mobileNumber: '', password: '' });
+    setSuccess('');
+    setError('');
+  };
 
   return (
     <Row>
       <Col md={4}>
         <Card className="card-custom">
-          <Card.Header className="card-header-custom">Add New Agent</Card.Header>
+          <Card.Header className="card-header-custom">{editingId ? 'Edit Agent' : 'Add New Agent'}</Card.Header>
           <Card.Body>
             {error && <Alert variant="danger">{error}</Alert>}
             {success && <Alert variant="success">{success}</Alert>}
@@ -92,10 +124,17 @@ const AgentManager = () => {
                   type="password" 
                   value={formData.password}
                   onChange={(e) => setFormData({...formData, password: e.target.value})}
-                  required
+                  required={!editingId}
                 />
               </Form.Group>
-              <Button variant="primary" type="submit" className="w-100">Add Agent</Button>
+              <Button variant="primary" type="submit" className="w-100">
+                {editingId ? 'Update Agent' : 'Add Agent'}
+              </Button>
+              {editingId && (
+                <Button variant="secondary" className="w-100 mt-2" onClick={handleCancelEdit}>
+                  Cancel Edit
+                </Button>
+              )}
             </Form>
           </Card.Body>
         </Card>
@@ -120,6 +159,9 @@ const AgentManager = () => {
                     <td>{agent.email}</td>
                     <td>{agent.mobileNumber}</td>
                     <td>
+                      <Button variant="primary" size="sm" onClick={() => handleEdit(agent._id)} className='m-1'>
+                        Edit
+                      </Button>
                       <Button variant="danger" size="sm" onClick={() => handleDelete(agent._id)}>
                         Delete
                       </Button>

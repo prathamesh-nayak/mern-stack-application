@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import AgentManager from '../components/AgentManager';
 import FileUpload from '../components/FileUpload';
 import TaskViewer from '../components/TaskViewer';
+import CallViewer from '../components/CallViewer';
 
 const DashboardPage = () => {
   const { user, logoutUser } = useAuth();
@@ -19,7 +20,7 @@ const DashboardPage = () => {
     <>
       <Navbar className="navbar-custom" variant="dark" expand="lg">
         <Container>
-          <Navbar.Brand href="#home" className="fw-bold">MERN Admin</Navbar.Brand>
+          <Navbar.Brand href="#home" className="fw-bold">Admin Dashboard</Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
             <Navbar.Text className="me-3 text-white-50">
@@ -38,7 +39,6 @@ const DashboardPage = () => {
       </Navbar>
 
       <Container className="mt-4">
-        <h4 className="mb-4 text-gray-800">Admin Dashboard</h4>
         <Tabs
           id="dashboard-tabs"
           activeKey={key}
@@ -53,6 +53,9 @@ const DashboardPage = () => {
           </Tab>
           <Tab eventKey="tasks" title="Distributed Lists">
             <TaskViewer key={taskRefreshTrigger} />
+          </Tab>
+          <Tab eventKey="Call" title="Call Lists">
+            <CallViewer/>
           </Tab>
         </Tabs>
       </Container>

@@ -16,8 +16,10 @@ API.interceptors.request.use((config) => {
 export const login = (credentials) => API.post('/auth/login', credentials);
 export const register = (credentials) => API.post('/auth/register', credentials);
 export const addAgent = (agentData) => API.post('/agents', agentData);
+export const updateAgent = (id, agentData) => API.put(`/agents/${id}`, agentData);
 export const getAgents = () => API.get('/agents');
 export const deleteAgent = (id) => API.delete(`/agents/${id}`);
+
 export const uploadFile = (formData) => API.post('/tasks/upload', formData, {
   headers: { 'Content-Type': 'multipart/form-data' }
 });
