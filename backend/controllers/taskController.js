@@ -48,7 +48,6 @@ exports.uploadAndDistribute = async (req, res) => {
 
     await Task.insertMany(createdTasks);
 
-    // Clean up uploaded file
     fs.unlinkSync(filePath);
 
     res.status(201).json({ 
@@ -67,7 +66,6 @@ exports.getDistributedTasks = async (req, res) => {
   try {
     const tasks = await Task.find().populate('assignedTo', 'name email');
     
-    // Group tasks by agent
     const groupedTasks = tasks.reduce((acc, task) => {
       const agentId = task.assignedTo._id.toString();
       if (!acc[agentId]) {

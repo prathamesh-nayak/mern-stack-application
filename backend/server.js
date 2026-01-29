@@ -7,21 +7,18 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('MongoDB Connected'))
   .catch(err => console.log(err));
 
-// Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/agents', require('./routes/agentRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
+app.use('/api/calls', require('./routes/callRoutes'));
 
-// Basic Route
 app.get('/', (req, res) => {
   res.send('API is running...');
 });

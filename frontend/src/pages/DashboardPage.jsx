@@ -4,16 +4,23 @@ import { useAuth } from '../context/AuthContext';
 import AgentManager from '../components/AgentManager';
 import FileUpload from '../components/FileUpload';
 import TaskViewer from '../components/TaskViewer';
+import CallUpload from '../components/CallUpload';
 import CallViewer from '../components/CallViewer';
 
 const DashboardPage = () => {
   const { user, logoutUser } = useAuth();
   const [key, setKey] = useState('agents');
   const [taskRefreshTrigger, setTaskRefreshTrigger] = useState(0);
+  const [callRefreshTrigger, setCallRefreshTrigger] = useState(0);
 
   const handleUploadSuccess = () => {
     setTaskRefreshTrigger(prev => prev + 1);
     setKey('tasks');
+  };
+
+  const handleCallUploadSuccess = () => {
+    setCallRefreshTrigger(prev => prev + 1);
+    setKey('calls');
   };
 
   return (
@@ -48,14 +55,17 @@ const DashboardPage = () => {
           <Tab eventKey="agents" title="Manage Agents">
             <AgentManager />
           </Tab>
-          <Tab eventKey="upload" title="Upload & Distribute">
+          <Tab eventKey="upload" title="Task Upload">
             <FileUpload onUploadSuccess={handleUploadSuccess} />
           </Tab>
-          <Tab eventKey="tasks" title="Distributed Lists">
+          <Tab eventKey="tasks" title="Task Lists">
             <TaskViewer key={taskRefreshTrigger} />
           </Tab>
-          <Tab eventKey="Call" title="Call Lists">
-            <CallViewer/>
+          <Tab eventKey="call-upload" title="Call Upload">
+            <CallUpload onUploadSuccess={handleCallUploadSuccess} />
+          </Tab>
+          <Tab eventKey="calls" title="Call Lists">
+            <CallViewer key={callRefreshTrigger} />
           </Tab>
         </Tabs>
       </Container>

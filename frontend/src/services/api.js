@@ -26,4 +26,11 @@ export const uploadFile = (formData) => API.post('/tasks/upload', formData, {
 export const getDistributedTasks = () => API.get('/tasks/distributed');
 export const deleteAllTasks = () => API.delete('/tasks/delete-all');
 
+export const uploadCallFile = (formData) => API.post('/calls/upload', formData, {
+  headers: { 'Content-Type': 'multipart/form-data' }
+});
+export const getDistributedCalls = () => API.get('/calls/distributed');
+export const updateCallStatus = (id, status) => API.put(`/calls/${id}/status`, { status });
+export const deleteAllCalls = () => API.delete('/calls/delete-all');
+
 export default API;

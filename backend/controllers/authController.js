@@ -26,7 +26,6 @@ exports.login = async (req, res) => {
   }
 };
 
-// Temporary register route for setup
 exports.register = async (req, res) => {
   try {
     const { email, password } = req.body;

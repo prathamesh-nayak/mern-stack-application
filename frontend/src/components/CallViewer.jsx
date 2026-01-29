@@ -1,35 +1,62 @@
 import React, { useState, useEffect } from 'react';
 import { Accordion, Table, Badge, Spinner, Alert, Card, Button } from 'react-bootstrap';
-import { getDistributedTasks, deleteAllTasks } from '../services/api';
+import { getDistributedCalls, deleteAllCalls, updateCallStatus } from '../services/api';
 
 const CallViewer = () => {
-  const [groupedTasks, setGroupedTasks] = useState([]);
+  const [groupedCalls, setGroupedCalls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchTasks();
+    fetchCalls();
   }, []);
 
-  const fetchTasks = async () => {
+  const fetchCalls = async () => {
     setLoading(true);
     try {
-      const { data } = await getDistributedTasks();
-      setGroupedTasks(data);
+      const { data } = await getDistributedCalls();
+      setGroupedCalls(data);
     } catch (err) {
-      setError('Failed to load distributed lists.');
+      setError('Failed to load distributed calls.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleClearAll = async () => {
-    if (!window.confirm('Are you sure you want to delete ALL tasks? This action cannot be undone.')) return;
+    if (!window.confirm('Are you sure you want to delete ALL calls? This action cannot be undone.')) return;
     try {
-      await deleteAllTasks();
-      fetchTasks();
+      await deleteAllCalls();
+      fetchCalls();
     } catch (err) {
-      setError('Failed to clear tasks.');
+      setError('Failed to clear calls.');
+    }
+  };
+
+  const handleMakeCall = async (agentId, e) => {
+    e.stopPropagation(); // Prevent accordion toggle
+    const groupIndex = groupedCalls.findIndex(g => g.agent._id === agentId);
+    if (groupIndex === -1) return;
+
+    const group = groupedCalls[groupIndex];
+    const callToCall = group.calls.find(c => c.status !== 'called');
+
+    if (!callToCall) {
+      alert('All calls for this agent have been called!');
+      return;
+    }
+
+    try {
+      await updateCallStatus(callToCall._id, 'called');
+      
+      const newGroupedCalls = [...groupedCalls];
+      newGroupedCalls[groupIndex].calls = newGroupedCalls[groupIndex].calls.map(c => 
+        c._id === callToCall._id ? { ...c, status: 'called' } : c
+      );
+      setGroupedCalls(newGroupedCalls);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to update call status.');
     }
   };
 
@@ -39,28 +66,36 @@ const CallViewer = () => {
   return (
     <Card className="card-custom">
       <Card.Header className="card-header-custom d-flex justify-content-between align-items-center">
-        <span>Distributed Lists by Agent</span>
+        <span>Distributed Calls by Agent</span>
         <div>
-          <Badge bg="info" className="me-2">{groupedTasks.length} Agents Assigned</Badge>
-          {groupedTasks.length > 0 && (
+          <Badge bg="info" className="me-2">{groupedCalls.length} Agents Assigned</Badge>
+          {groupedCalls.length > 0 && (
             <Button variant="danger" size="sm" onClick={handleClearAll}>
-              Clear All Tasks
+              Clear All Calls
             </Button>
           )}
         </div>
       </Card.Header>
       <Card.Body>
-        {groupedTasks.length === 0 ? (
-          <p className="text-center text-muted">No tasks distributed yet. Upload a file to see results.</p>
+        {groupedCalls.length === 0 ? (
+          <p className="text-center text-muted">No calls distributed yet. Upload a file to see results.</p>
         ) : (
           <Accordion defaultActiveKey="0">
-            {groupedTasks.map((group, index) => (
+            {groupedCalls.map((group, index) => (
               <Accordion.Item eventKey={index.toString()} key={group.agent._id}>
                 <Accordion.Header>
-                  <strong>{group.agent.name}</strong> 
-                  <span className="ms-2 text-muted">({group.agent.email})</span>
-                  <Badge bg="secondary" className="ms-auto me-3">{group.tasks.length} tasks</Badge>
-                  <Button variant="primary" size="sm">Make a Call</Button>
+                  <div className="d-flex align-items-center w-100 me-3">
+                    <strong>{group.agent.name}</strong> 
+                    <span className="ms-2 text-muted">({group.agent.email})</span>
+                    <Badge bg="secondary" className="ms-2">{group.calls.length} calls</Badge>
+                    
+                    <div className="ms-auto d-flex align-items-center">
+                      <Button variant="primary" size="sm" onClick={(e) => handleMakeCall(group.agent._id, e)}>Make a Call</Button>
+                      <Badge bg="success" className="ms-2">
+                        Called: {group.calls.filter(c => c.status === 'called').length}
+                      </Badge>
+                    </div>
+                  </div>
                 </Accordion.Header>
                 <Accordion.Body>
                   <Table striped bordered hover size="sm">
@@ -68,17 +103,25 @@ const CallViewer = () => {
                       <tr>
                         <th>#</th>
                         <th>First Name</th>
-                        <th>Phone</th>
-                        <th>Notes</th>
+                        <th>Mobile</th>
+                        <th>Email</th>
+                        <th>Status</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {group.tasks.map((task, idx) => (
-                        <tr key={task._id}>
+                      {group.calls.map((call, idx) => (
+                        <tr key={call._id} className={call.status === 'called' ? 'table-success' : ''}>
                           <td>{idx + 1}</td>
-                          <td>{task.firstName}</td>
-                          <td>{task.phone}</td>
-                          <td>{task.notes}</td>
+                          <td>{call.firstName}</td>
+                          <td>{call.mobile}</td>
+                          <td>{call.email}</td>
+                          <td>
+                            {call.status === 'called' ? (
+                              <Badge bg="success">Called</Badge>
+                            ) : (
+                              <Badge bg="warning" text="dark">Pending</Badge>
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const { uploadAndDistribute, getDistributedTasks } = require('../controllers/taskController');
+const { uploadAndDistributeCalls, getDistributedCalls, updateCallStatus, deleteAllCalls } = require('../controllers/callController');
 const auth = require('../middleware/auth');
 const path = require('path');
 
@@ -26,8 +26,9 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({ storage, fileFilter });
 
-router.post('/upload', auth, upload.single('file'), uploadAndDistribute);
-router.get('/distributed', auth, getDistributedTasks);
-router.delete('/delete-all', auth, require('../controllers/taskController').deleteAllTasks);
+router.post('/upload', auth, upload.single('file'), uploadAndDistributeCalls);
+router.get('/distributed', auth, getDistributedCalls);
+router.put('/:id/status', auth, updateCallStatus);
+router.delete('/delete-all', auth, deleteAllCalls);
 
 module.exports = router;
